@@ -7,7 +7,6 @@ from config import LIVE_POLL_SECONDS
 login()
 state = load_state()
 
-post("🤖 Norwich City score bot is live.\n\n")
 print("Norwich City Bluesky bot started")
 
 while True:
