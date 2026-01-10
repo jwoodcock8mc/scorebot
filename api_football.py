@@ -27,3 +27,12 @@ def get_fixture_events(fixture_id):
         timeout=10,
     )
     return r.json()["response"]
+
+def get_fixture_lineups(fixture_id):
+    r = requests.get(
+        f"{BASE_URL}/fixtures/lineups",
+        headers=HEADERS,
+        params={"fixture": fixture_id},
+        timeout=10,
+    )
+    return r.json()["response"]

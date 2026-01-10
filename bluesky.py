@@ -1,20 +1,28 @@
 from atproto import Client
-from config import BLUESKY_HANDLE, BLUESKY_APP_PASSWORD
+from atproto_client.exceptions import RequestException
+import time
 
 client = Client()
 
-def login():
-    client.login(BLUESKY_HANDLE, BLUESKY_APP_PASSWORD)
+def login(handle, password):
+    client.login(handle, password)
 
-def post(text):
-    return client.send_post(text)
+def safe_post(text, state):
+    from state import can_post, record_post, save_state
 
-def reply(text, parent_uri, parent_cid):
-    client.send_post(
-        text=text,
-        reply_to={
-            "root": {"uri": parent_uri, "cid": parent_cid},
-            "parent": {"uri": parent_uri, "cid": parent_cid},
-        }
-    )
+    if not can_post(state):
+        print("Post skipped: daily Bluesky limit reached")
+        return None
 
+    try:
+        ref = client.send_post(text)
+        record_post(state)
+        save_state(state)
+        return ref
+
+    except RequestException as e:
+        if "RateLimitExceeded" in str(e):
+            print("Bluesky rate limit exceeded — sleeping 24h")
+            time.sleep(86400)
+            return None
+        raise
