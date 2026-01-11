@@ -1,3 +1,4 @@
+import time
 import requests
 from config import API_FOOTBALL_KEY, API_FOOTBALL_HOST, NORWICH_TEAM_ID
 
@@ -14,9 +15,9 @@ HEADERS = {
 
 def _safe_get(endpoint, params=None):
     """
-    Perform a safe API-Football GET request.
-    Always returns a list (possibly empty).
-    Never raises KeyError.
+    Safe API-Football GET.
+    Always returns a list.
+    Backs off on rate limits.
     """
     url = f"{BASE_URL}{endpoint}"
 
@@ -28,7 +29,15 @@ def _safe_get(endpoint, params=None):
             timeout=10,
         )
 
-        # HTTP-level error (4xx / 5xx)
+        if r.status_code == 429:
+            print(
+                f"API-Football RATE LIMITED (429) on {endpoint}. "
+                "Backing off 10 minutes.",
+                flush=True,
+            )
+            time.sleep(600)
+            return []
+
         if r.status_code != 200:
             print(
                 f"API-Football HTTP error {r.status_code} on {endpoint}",
@@ -38,8 +47,7 @@ def _safe_get(endpoint, params=None):
 
         data = r.json()
 
-        # API-level error
-        if "errors" in data and data["errors"]:
+        if data.get("errors"):
             print(
                 f"API-Football API error on {endpoint}: {data['errors']}",
                 flush=True,
@@ -47,10 +55,9 @@ def _safe_get(endpoint, params=None):
             return []
 
         response = data.get("response")
-
         if not isinstance(response, list):
             print(
-                f"API-Football malformed response on {endpoint}: {data}",
+                f"API-Football malformed response on {endpoint}",
                 flush=True,
             )
             return []
@@ -62,11 +69,11 @@ def _safe_get(endpoint, params=None):
         return []
 
     except requests.exceptions.RequestException as e:
-        print(f"API-Football request failed on {endpoint}: {e}", flush=True)
+        print(f"API-Football request failed: {e}", flush=True)
         return []
 
     except ValueError as e:
-        print(f"API-Football JSON decode failed on {endpoint}: {e}", flush=True)
+        print(f"API-Football JSON decode failed: {e}", flush=True)
         return []
 
 
@@ -76,7 +83,7 @@ def _safe_get(endpoint, params=None):
 
 def get_live_fixture():
     """
-    Return the live Norwich City fixture dict, or None if not live.
+    Return live Norwich City fixture dict, or None.
     """
     fixtures = _safe_get(
         "/fixtures",
@@ -86,26 +93,18 @@ def get_live_fixture():
         },
     )
 
-    if not fixtures:
-        return None
-
-    # API-Football can return multiple live fixtures (rare, but possible)
-    for fixture in fixtures:
-        teams = fixture.get("teams", {})
-        home_id = teams.get("home", {}).get("id")
-        away_id = teams.get("away", {}).get("id")
-
-        if home_id == NORWICH_TEAM_ID or away_id == NORWICH_TEAM_ID:
-            return fixture
+    for f in fixtures:
+        teams = f.get("teams", {})
+        if (
+            teams.get("home", {}).get("id") == NORWICH_TEAM_ID
+            or teams.get("away", {}).get("id") == NORWICH_TEAM_ID
+        ):
+            return f
 
     return None
 
 
 def get_fixture_events(fixture_id):
-    """
-    Return a list of events for a fixture.
-    Always returns a list (possibly empty).
-    """
     if not fixture_id:
         return []
 
@@ -116,10 +115,6 @@ def get_fixture_events(fixture_id):
 
 
 def get_fixture_lineups(fixture_id):
-    """
-    Return a list of lineups for a fixture.
-    Always returns a list (possibly empty).
-    """
     if not fixture_id:
         return []
 
