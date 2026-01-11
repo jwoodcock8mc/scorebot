@@ -1,15 +1,26 @@
+print("BOT.PY LOADED", flush=True)
+
 import time
 from datetime import date
+
+print("Imports starting", flush=True)
 
 from api_football import (
     get_live_fixture,
     get_fixture_events,
     get_fixture_lineups,
 )
-from bluesky import login, safe_post
-from state import load_state, save_state
-from config import BLUESKY_HANDLE, BLUESKY_APP_PASSWORD
 
+print("Imported api_football", flush=True)
+
+from bluesky import login, safe_post
+print("Imported bluesky", flush=True)
+
+from state import load_state, save_state
+print("Imported state", flush=True)
+
+from config import BLUESKY_HANDLE, BLUESKY_APP_PASSWORD
+print("Imported config", flush=True)
 
 # -------------------------
 # Helpers
