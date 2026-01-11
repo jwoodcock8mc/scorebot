@@ -29,11 +29,11 @@ print("Imported config", flush=True)
 def high_signal_only(state):
     """When close to Bluesky daily limit, suppress low-signal posts."""
     return state.get("daily_posts", 0) >= 6
-
+print("def high_signal_only", flush=True)
 
 def today():
     return str(date.today())
-
+print("def today", flush=True)
 
 # -------------------------
 # Startup
@@ -48,6 +48,9 @@ print("Norwich City Bluesky bot started (final version)")
 # -------------------------
 # Main loop
 # -------------------------
+
+def main():
+    print("ENTERED MAIN()", flush=True)
 
 POLL_COUNT = 0
 
@@ -272,3 +275,9 @@ while True:
     except Exception as e:
         print("Error:", e)
         time.sleep(60)
+
+if __name__ == "__main__":
+    main()
+
+print("Reached end of file", flush=True)
+
