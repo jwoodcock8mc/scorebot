@@ -5,8 +5,7 @@ from config import API_FOOTBALL_KEY, API_FOOTBALL_HOST, NORWICH_TEAM_ID
 BASE_URL = " https://v3.football.api-sports.io/"
 
 HEADERS = {
-    "X-RapidAPI-Key": API_FOOTBALL_KEY,
-    "X-RapidAPI-Host": API_FOOTBALL_HOST,
+    "x-apisports-key": API_FOOTBALL_KEY,
 }
 
 # -------------------------
